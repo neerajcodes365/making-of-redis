@@ -2,6 +2,8 @@
 #include<vector>
 #include<sstream>
 #include<algorithm>
+#include <iostream>//for testing
+
 // RESP Parser will be used :
 /*
  *2\r\n
@@ -80,6 +82,13 @@ std::string RedisCommandHandler::processCommand(const std::string& commandLine){
     //use resp parser
     auto tokens=parseRespCommand(commandLine);
     if(tokens.empty())return "-Error : Empty command \r\n";
+  
+    //testing area 
+    std::cout<<commandLine<<"\n";
+    for(auto &t:tokens){
+        std::cout<<t<<"\n";
+    }
+    //
 
     std::string cmd=tokens[0];
     std::transform(cmd.begin(),cmd.end(),cmd.begin(),::toupper);//changing the string to uppercase
