@@ -18,6 +18,8 @@ class RedisServer{
     int server_socket;
     std::atomic<bool>running;
 
+    //setup signal handling for graceful shutdown ( ctrl + c) 
+    void setupSignalHandler();
 
 };
 #endif

@@ -1,4 +1,5 @@
-#include"include/RedisCommandHandler.h"
+#include"RedisCommandHandler.h"
+#include"RedisDatabase.h"
 #include<vector>
 #include<sstream>
 #include<algorithm>
@@ -67,12 +68,13 @@ where:
         if(crlf==std::string::npos)break;
         int len=std::stoi(input.substr(pos,crlf-pos));
 
+        pos=crlf+2;
         if(pos +len >input.size()) break;
         std::string token =input.substr(pos,len);
         tokens.push_back(token);
         pos+=len+2;//goes to $ again
     }
-
+    return tokens;
 
 }
 
@@ -83,12 +85,12 @@ std::string RedisCommandHandler::processCommand(const std::string& commandLine){
     auto tokens=parseRespCommand(commandLine);
     if(tokens.empty())return "-Error : Empty command \r\n";
   
-    //testing area 
-    std::cout<<commandLine<<"\n";
-    for(auto &t:tokens){
-        std::cout<<t<<"\n";
-    }
-    //
+    // //testing area 
+    // std::cout<<commandLine<<"\n";
+    // for(auto &t:tokens){
+    //     std::cout<<t<<"\n";
+    // }
+    // //
 
 //simply putting 
 
@@ -105,9 +107,28 @@ std::string s = oss.str()
 1;
 Now:s == "Hello World"
 */
-    //connect to database
 
+
+    //connect to database
+    // RedisDatabase& db=RedisDatabase::getInstance();//will build
+
+//debugging
+// std::cout << "Command is = [" << cmd << "]\n";
     //check commands
+    if (cmd == "PING")
+{
+    response << "+PONG\r\n";
+}
+    else if(cmd=="ECHO"){
+        // ....
+        // response<<"echo is done\r\n";
+    }
+    else{
+        response<<"-Error : Unknown Command \r\n";
+    }
+    // keyvalue operations
+    //list operations
+    //hash operations
 
     return response.str();
 }

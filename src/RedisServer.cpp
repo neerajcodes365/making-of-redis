@@ -1,5 +1,6 @@
-#include "include/RedisServer.h"
+#include "RedisServer.h"
 #include "RedisCommandHandler.h"
+#include "RedisDatabase.h"
 #include <iostream>
 #include <sys/socket.h>//socket prgming,socket apis
 #include <unistd.h>//linux syscall ,close()
@@ -7,15 +8,34 @@
 #include<vector>
 #include<thread>
 #include<cstring>
+#include<signal.h>
 
 static RedisServer *globalServer=nullptr;//signal handler!!
 
-RedisServer::RedisServer(int port) {
-    this->port = port;
-    server_socket = -1;
-    running = true;
+void signalHandler(int signum){
+    if(globalServer){
+        std::cout<<" Caught Signal "<<signum<<",shutting down....\n";
+        globalServer->shutdown();
+    }
+    exit(signum);
+}
 
-    globalServer = this;
+void RedisServer::setupSignalHandler(){
+    signal(SIGINT,signalHandler);
+}
+
+
+// RedisServer::RedisServer(int port) {
+//     this->port = port;
+//     server_socket = -1;
+//     running = true;
+
+//     globalServer = this;
+// }
+RedisServer::RedisServer(int port):port(port),server_socket(-1),running(true){
+    globalServer=this;
+    setupSignalHandler();
+
 }
 
 
@@ -111,6 +131,13 @@ This is what allows multiple clients to be handled simultaneously without blocki
     objects are destroyed.
 */
         //shutdown function.
+        //before shutdown, persist the database 
+        if(RedisDatabase::getInstance().dump("dump.my_rdb")){
+            std::cout<<"Database Dumped to dump.my_rdb\n";
+        }else{
+            std::cerr<<"Error dumping database \n";
+        }
+
 
         
 
