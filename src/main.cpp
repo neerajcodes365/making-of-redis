@@ -9,6 +9,13 @@ int main(int argc,char*argv[]){
     int port=6379;// deafult value
     if(argc>=2) port=std::atoi(argv[1]);
 
+    if(RedisDatabase::getInstance().load("dump.my_rdb")){
+        std::cout<<"Database loaded from dump.my_rdb\n";
+    }
+    else{
+        std::cout<<"No dump found or load failed ; starting with an empty database\n";
+    }
+
     RedisServer server(port);
 
 

@@ -24,6 +24,7 @@ pos → starting index from where the search begins (optional, default = 0)
 */
 
 
+/*
 std::vector<std::string> parseRespCommand( const std::string &input){
     std::vector<std::string> tokens;
 
@@ -53,8 +54,9 @@ where:
 \n = LF (Line Feed, ASCII 10)
 \r moved the cursor to the beginning of the line.
 \n moved the cursor down to the next line.
-*/
+    */
 
+/*
     size_t crlf=input.find("\r\n",pos);//2
     if(crlf==std::string::npos)return tokens;
 
@@ -77,6 +79,51 @@ where:
     return tokens;
 
 }
+*/
+std::vector<std::string> parseRespCommand(const std::string &input) {
+    std::vector<std::string> tokens;
+    if (input.empty()) return tokens;
+
+    // If it doesn't start with '*', fallback to splitting by whitespace
+    if (input[0] != '*') {
+        std::istringstream iss(input);
+        std::string token;
+        while (iss >> token)
+            tokens.push_back(token);
+        return tokens;
+    }
+
+    size_t pos = 0; // unsigned integer
+    // Expect '*' followed by number of elements
+    if (input[pos] != '*') return tokens;
+    pos++; // skip '*'
+
+    // CRLF = Carriage Return + Line Feed = "\r\n"
+    // \r (CR, ASCII 13) moves cursor to beginning of line
+    // \n (LF, ASCII 10) moves cursor down to next line
+    size_t crlf = input.find("\r\n", pos);
+    if (crlf == std::string::npos) return tokens;
+
+    // Handles double or triple digit numbers too (stoi reads the full number)
+    int numElements = std::stoi(input.substr(pos, crlf - pos));
+    pos = crlf + 2;
+
+    for (int i = 0; i < numElements; i++) {
+        if (pos >= input.size() || input[pos] != '$') break; // format error
+        pos++; // skip '$'
+
+        crlf = input.find("\r\n", pos);
+        if (crlf == std::string::npos) break;
+        int len = std::stoi(input.substr(pos, crlf - pos));
+        pos = crlf + 2;
+
+        if (pos + len > input.size()) break;
+        std::string token = input.substr(pos, len);
+        tokens.push_back(token);
+        pos += len + 2; // skip token and CRLF, goes to next '$'
+    }
+    return tokens;
+}
 
 RedisCommandHandler::RedisCommandHandler(){}
 
@@ -85,12 +132,12 @@ std::string RedisCommandHandler::processCommand(const std::string& commandLine){
     auto tokens=parseRespCommand(commandLine);
     if(tokens.empty())return "-Error : Empty command \r\n";
   
-    // //testing area 
-    // std::cout<<commandLine<<"\n";
-    // for(auto &t:tokens){
-    //     std::cout<<t<<"\n";
-    // }
-    // //
+    //testing area 
+    std::cout<<commandLine<<"\n";
+    for(auto &t:tokens){
+        std::cout<<t<<"\n";
+    }
+    //
 
 //simply putting 
 
@@ -181,7 +228,8 @@ Now:s == "Hello World"
             response<<"-Error: EXPIRE requires key and time in seconds\r\n";
         }
         else{
-            if(db.expire(tokens[1],tokens[2])){
+            int sec=std::stoi(tokens[2]);
+            if(db.expire(tokens[1],sec)){
                 response<<"+OK\r\n";
             }//will complete in future
             else{
