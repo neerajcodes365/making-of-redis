@@ -245,4 +245,4 @@ bool RedisDatabase::rename(const std::string& oldkey,const std::string& newkey){
 
     return found;
 }
-    
+
